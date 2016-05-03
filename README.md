@@ -10,17 +10,12 @@ To be played against other [Merknera](https://github.com/mleonard87/merknera) bo
 ## Setup
 Install the required dependencies:
 
-1. Install requests with
-  ```
-pip install requests
-  ```
-2. Download [lovely jsonrpc](https://pypi.python.org/pypi/lovely.jsonrpc/0.2.1). Extract and run
-  ```
-  setup.py install
-  ```
+1. Install requests with `pip install requests`.
+
+2. Download [lovely jsonrpc](https://pypi.python.org/pypi/lovely.jsonrpc/0.2.1). Extract and run `setup.py install`.
+  
+## Configuration
+All the configuration details are in `config.ini`.
 
 ## Running the bot
-Running the bot is as simple as
-```
-python gamecontroller.py
-```
+Running the bot is as simple as `python gamecontroller.py`.
