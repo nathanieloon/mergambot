@@ -14,19 +14,19 @@ class TicTacToeBot(Bot):
         Bot.__init__(self, 'TICTACTOE')
         self.game_id = None
         self.mark = None
-        self.game_status = None
+        # self.game_status = None
         self.board = Board()
 
     def make_move(self, gameid, mark, gamestate):
         """ Function for taking the next move
         """
-        # Set our mark and id if we haven't got one
-        if self.mark is None:
-            self.mark = mark
-        if self.game_id is None:
-            self.game_id = gameid
-        if self.game_status is None or  self.game_status is 'COMPLETE':
-            self.game_status = 'PLAYING'
+        # Set our mark and id for this turn
+        # Note: This is kinda weird, because of multiple games. 
+        # Think of it as mark and id for this particular turn.
+        self.mark = mark
+        self.game_id = gameid
+        # if self.game_status is None or  self.game_status is 'COMPLETE':
+        #     self.game_status = 'PLAYING'
 
         # Update the board
         self.board.update_board(gamestate)
@@ -35,7 +35,7 @@ class TicTacToeBot(Bot):
         move = self.next_move()
 
         # Show the board
-        self.board.print_board()
+        self.board.print_board(gameid, mark)
 
         #Return move
         response = {'position': move}
@@ -57,7 +57,7 @@ class TicTacToeBot(Bot):
         # Update and print the board
         self.board.update_board(gamestate)
         print "Board: "
-        self.board.print_board()
+        self.board.print_board(gameid, mark)
 
         response = {'status': 'OK'}
         return response
@@ -66,7 +66,7 @@ class TicTacToeBot(Bot):
         """ Error message handling
         """
         self.game_status = 'ERROR'
-        print "Merknera: Error in game_id:", gameid, ",", message, ", Error code:", errorcode
+        print "Merknera: Error in game_id: {0}, {1}, Error code: {2}".format(gameid, message, errorcode)
 
         response = {'status': 'OK'}
         return response 
@@ -122,12 +122,12 @@ class Board:
         """
         return self.board_tiles[tile]
 
-    def print_board(self):
+    def print_board(self, gameid, mark):
         """ Helper function for printing out the current board state
         """
         # Space it out a bit
         # TODO: Put information about turns here?
-        print ""
+        print "GameID: {0}, Mark: {1}".format(gameid, mark)
 
         # Print the board
         for i, tile in enumerate(self.board_tiles):
