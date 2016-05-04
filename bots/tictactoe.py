@@ -74,19 +74,41 @@ class TicTacToeBot(Bot):
     def next_move(self):
         """ Function for determining the next move to be played
         """
-        # First check for any potential win states
-        move = self.check_for_win()
-        # Fill a tile
+        board = self.board.board_tiles
+        board_len = self.board.board_len
+        empty_tiles = self.board.get_empties()
+
+        # First move
+        if len(empty_tiles) is board_len*board_len:
+            # We want to fill the centre square if we're going first
+            move = self.board_centre
+        else:
+            # First check for any potential win states
+            move = self.check_for_win(board, board_len, empty_tiles)
+
+            if move is None:
+                # Second move
+                if len(empty_tiles) is board_len*board_len-1:
+                    if self.board.board_centre in empty_tiles:
+                        move = self.board.board_centre
+                    else:
+                        move = self.board.board_corners[random.randint(0,len(self.board.board_corners)-1)]
+                else:
+                    # Anything else we pick a random tile
+                    move = random.randint(0, self.board.board_len*self.board.board_len-1)
+
+                    while move not in empty_tiles:
+                        move = random.randint(0, self.board.board_len*self.board.board_len-1)
+
+
+        # Fill the tile
         self.board.assign_move(move, self.mark)
 
         return move
 
-    def check_for_win(self):
+    def check_for_win(self, board, board_len, empty_tiles):
         """ Function for checking for any win (or loss) states
         """
-        board = self.board.board_tiles
-        board_len = self.board.board_len
-        empty_tiles = self.board.get_empties()
         defensive_moves = set()
 
         # Verticals
@@ -142,12 +164,7 @@ class TicTacToeBot(Bot):
         if len(defensive_moves) >= 1:
             return defensive_moves.pop()
         else:
-            # Choose a random tile
-            move = random.randint(0,8)
-            # Get an empty tile
-            while self.board.get_tile(move) is not None:
-                move = random.randint(0,8)
-            return move
+            return None
 
 
     def get_game_status(self):
@@ -161,11 +178,33 @@ class Board:
         """
         self.board_len = 3
         self.board_tiles = self.build_board()
+        self.board_centre = 4
+        self.board_corners = self.find_corners()
+        self.board_edges = self.find_edges()
 
     def convert_tile(self, row, col):
         """ Convert a tile from the n*n array format
         """
         return (row*self.board_len)+col
+
+    def find_corners(self):
+        """ Get all the corners
+        """
+        corners = []
+        for i, row in enumerate(self.board_tiles):
+            for j, col in enumerate(row):
+                if j % (self.board_len-1) is 0 and i % (self.board_len-1) is 0:
+                    corners.append(self.convert_tile(i, j))
+        return corners
+
+    def find_edges(self):
+        """ Get all the edges
+        """
+        edges = []
+        for i in range(self.board_len*self.board_len):
+            if i not in self.board_corners and i is not self.board_centre:
+                edges.append(i)
+        return edges
 
     def build_board(self):
         """ Function to build the n sized board
