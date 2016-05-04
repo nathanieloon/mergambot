@@ -22,7 +22,7 @@ class TicTacToeBot(Bot):
         """
         # Set our mark and id for this turn
         # Note: This is kinda weird, because of multiple games. 
-        # Think of it as mark and id for this particular turn.
+        # Think of it as mark and id the bot is focusing on for this particular turn.
         self.mark = mark
         self.game_id = gameid
         # if self.game_status is None or  self.game_status is 'COMPLETE':
@@ -73,20 +73,82 @@ class TicTacToeBot(Bot):
 
     def next_move(self):
         """ Function for determining the next move to be played
-
-            Currently very simple, just taking an empty, random tile
         """
-        # Choose a random tile
-        move = random.randint(0,8)
-
-        # Get an empty tile
-        while self.board.get_tile(move) is not None:
-            move = random.randint(0,8)
-
+        # First check for any potential win states
+        move = self.check_for_win()
         # Fill a tile
         self.board.assign_move(move, self.mark)
 
         return move
+
+    def check_for_win(self):
+        """ Function for checking for any win (or loss) states
+        """
+        board = self.board.board_tiles
+        board_len = self.board.board_len
+        empty_tiles = self.board.get_empties()
+        defensive_moves = set()
+
+        # Verticals
+        for move in empty_tiles:
+            col = []
+            row = []
+            # Build rows and columns
+            for i in range(board_len):
+                col.append(board[i][move%board_len])
+                row.append(board[move/board_len][i])
+
+            # Horizontal checks
+            if row.count(None) is 1 and len(filter(None, set(row))) is 1 and self.mark in row:
+                return move
+            elif row.count(None) is 1 and len(filter(None, set(row))) is 1:
+                defensive_moves.add(move)
+
+            # Vertical checks
+            if col.count(None) is 1 and len(filter(None, set(col))) is 1 and self.mark in col:
+                return move
+            elif col.count(None) is 1 and len(filter(None, set(col))) is 1:
+                defensive_moves.add(move)
+
+        diag_a = {}
+        diag_b = {}
+        for i in range(board_len):
+            # Build diagonals
+            diag_a[self.board.convert_tile(i,i)] = board[i][i]
+            diag_b[self.board.convert_tile(i, (board_len-1-i))] =  board[i][board_len-1-i]
+
+        # Diagonal checks
+        # We're making the assumption that the winning number of tiles will always be the same as board_len.
+        # Still kinda ugly though.
+        if diag_a.values().count(None) is 1 and len(filter(None, set(diag_a.values()))) is 1 and self.mark in diag_a:
+            for move, val in diag_a.items():
+                if val is None:
+                    defensive_moves.add(move)
+        elif diag_a.values().count(None) is 1 and len(filter(None, set(diag_a.values()))) is 1:
+            for move, val in diag_a.items():
+                if val is None:
+                    defensive_moves.add(move)
+
+        if diag_b.values().count(None) is 1 and len(filter(None, set(diag_b.values()))) is 1 and self.mark in diag_b:
+            for move, val in diag_b.items():
+                if val is None:
+                    defensive_moves.add(move)
+        elif diag_b.values().count(None) is 1 and len(filter(None, set(diag_b.values()))) is 1:
+            for move, val in diag_b.items():
+                if val is None:
+                    defensive_moves.add(move)
+
+        # No winning move found, play a defensive one
+        if len(defensive_moves) >= 1:
+            return defensive_moves.pop()
+        else:
+            # Choose a random tile
+            move = random.randint(0,8)
+            # Get an empty tile
+            while self.board.get_tile(move) is not None:
+                move = random.randint(0,8)
+            return move
+
 
     def get_game_status(self):
         """ Helper function to get the game state
@@ -97,9 +159,18 @@ class Board:
     def __init__(self):
         """ Define the board for Tic Tac Toe
         """
-        self.board_tiles = [None, None, None,
-                            None, None, None,
-                            None, None, None]
+        self.board_len = 3
+        self.board_tiles = self.build_board()
+
+    def convert_tile(self, row, col):
+        """ Convert a tile from the n*n array format
+        """
+        return (row*self.board_len)+col
+
+    def build_board(self):
+        """ Function to build the n sized board
+        """
+        return [[None for n in range(self.board_len)] for n in range(self.board_len)]
 
     def update_board(self, game_state):
         """ Update the board with a specific game state
@@ -115,12 +186,22 @@ class Board:
             mark = None
 
         # Update tile
-        self.board_tiles[tile] = mark
+        self.board_tiles[tile / self.board_len][tile % self.board_len] = mark
 
     def get_tile(self, tile):
         """ Get the given tile
         """
-        return self.board_tiles[tile]
+        return self.board_tiles[tile / self.board_len][tile % self.board_len]
+
+    def get_empties(self):
+        """ Return all the empty tiles
+        """
+        empties = []
+        for i, row in enumerate(self.board_tiles):
+            for j, tile in enumerate(row):
+                if tile is None:
+                    empties.append(self.convert_tile(i, j))
+        return empties
 
     def print_board(self, gameid, mark):
         """ Helper function for printing out the current board state
@@ -130,16 +211,17 @@ class Board:
         print "GameID: {0}, Mark: {1}".format(gameid, mark)
 
         # Print the board
-        for i, tile in enumerate(self.board_tiles):
-            # Use a blank space for empty tiles
-            if tile == None:
-                    tile = '-'
+        for row in self.board_tiles:
+            for i, tile in enumerate(row):
+                # Use a blank space for empty tiles
+                if tile == None:
+                        tile = '-'
 
-            # Print the board
-            if i == 8:
-                print str(tile)
-            elif (i+1) % 3 == 0:
-                print str(tile)
-                print "---------"
-            else:
-                print str(tile) + " |",
+                # Print the board
+                if i == 8:
+                    print str(tile)
+                elif (i+1) % 3 == 0:
+                    print str(tile)
+                    print "---------"
+                else:
+                    print str(tile) + " |",
