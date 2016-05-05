@@ -4,7 +4,7 @@ Mergambot - The **Mer**knera **Gam**e **Bot**
 
 To be played against other [Merknera](https://github.com/mleonard87/merknera) bots.
 
-## Currently supported games:
+## Currently supported games
 * Tic Tac Toe
 
 ## Setup
