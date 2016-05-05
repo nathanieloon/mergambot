@@ -17,14 +17,14 @@ class TicTacToeBot(Bot):
         Bot.__init__(self, 'TICTACTOE')
         self.board = Board()
 
-    def make_move(self, gameid, mark, gamestate, opponent):
+    def next_move(self, gameid, mark, gamestate, opponent):
         """ Function for taking the next move
         """
         # Update the board
         self.board.update_board(gamestate)
 
         # Decide and make our move
-        move = self.next_move(mark)
+        move = self.choose_move(mark)
 
         # Show the board
         self.board.print_board(gameid, mark)
@@ -63,7 +63,7 @@ class TicTacToeBot(Bot):
         response = {'status': 'OK'}
         return response 
 
-    def next_move(self, mark):
+    def choose_move(self, mark):
         """ Function for determining the next move to be played
         """
         board = self.board.board_tiles

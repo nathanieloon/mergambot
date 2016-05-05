@@ -27,7 +27,7 @@ class GameController:
         dispatcher.register_method(self.status_ping, name='Status.Ping')
 
         # Tic Tac Toe game
-        dispatcher.register_method(ttt_bot.make_move, name='TicTacToe.NextMove')
+        dispatcher.register_method(ttt_bot.next_move, name='TicTacToe.NextMove')
         dispatcher.register_method(ttt_bot.complete, name='TicTacToe.Complete')
         dispatcher.register_method(ttt_bot.error_message, name='TicTacToe.Error')
 
