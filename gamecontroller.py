@@ -78,7 +78,7 @@ class GameController:
         response = requests.post(
             url, data=json.dumps(payload), headers=headers)
 
-        # print response.json()
+        print response
         if 'error' in response.json().keys():
             sys.exit
         else:
@@ -87,6 +87,7 @@ class GameController:
     def status_ping(self):
         """ Ping ping
         """
+        print "Ping received."
         response = {'ping': 'OK'}
         return response
 

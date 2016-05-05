@@ -17,7 +17,7 @@ class TicTacToeBot(Bot):
         # self.game_status = None
         self.board = Board()
 
-    def make_move(self, gameid, mark, gamestate):
+    def make_move(self, gameid, mark, gamestate, opponent):
         """ Function for taking the next move
         """
         # Set our mark and id for this turn
@@ -49,9 +49,9 @@ class TicTacToeBot(Bot):
         print "======= Game is complete ======="
         print "Game ID: ", gameid
         if winner is True:
-            winna = "Us :D"
+            winna = "We win!"
         else:
-            winna = "Them :("
+            winna = "Tie or loss"
         print "Winner: ", winna
 
         # Update and print the board
@@ -81,7 +81,7 @@ class TicTacToeBot(Bot):
         # First move
         if len(empty_tiles) is board_len*board_len:
             # We want to fill the centre square if we're going first
-            move = self.board_centre
+            move = self.board.board_centre
         else:
             # First check for any potential win states
             move = self.check_for_win(board, board_len, empty_tiles)
