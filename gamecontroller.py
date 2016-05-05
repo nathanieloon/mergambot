@@ -78,7 +78,7 @@ class GameController:
         response = requests.post(
             url, data=json.dumps(payload), headers=headers)
 
-        print response
+        # print response
         if 'error' in response.json().keys():
             sys.exit
         else:

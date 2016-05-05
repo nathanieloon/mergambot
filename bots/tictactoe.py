@@ -15,22 +15,11 @@ class TicTacToeBot(Bot):
         """ Initialise bot
         """
         Bot.__init__(self, 'TICTACTOE')
-        self.game_id = None
-        # self.mark = None
-        # self.game_status = None
         self.board = Board()
 
     def make_move(self, gameid, mark, gamestate, opponent):
         """ Function for taking the next move
         """
-        # Set our mark and id for this turn
-        # Note: This is kinda weird, because of multiple games. 
-        # Think of it as mark and id the bot is focusing on for this particular turn.
-        # self.mark = mark
-        self.game_id = gameid
-        # if self.game_status is None or  self.game_status is 'COMPLETE':
-        #     self.game_status = 'PLAYING'
-
         # Update the board
         self.board.update_board(gamestate)
 
