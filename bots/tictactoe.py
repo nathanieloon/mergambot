@@ -131,16 +131,18 @@ class TicTacToeBot(Bot):
                 defensive_moves.add(move)
 
             # Diagonal checks
-            diag_fw, diag_rv = self.board.get_diags()
-            if self.check_line(move, diag_fw, mark) is WINNER:
-                return move
-            elif self.check_line(move, diag_fw, mark) is DEFENSIVE:
-                defensive_moves.add(move)
+            # We're still checking a little bit extra here... (both diagonals)
+            if move in self.board.board_corners or move is self.board.board_centre:
+                diag_fw, diag_rv = self.board.get_diags()
+                if self.check_line(move, diag_fw, mark) is WINNER:
+                    return move
+                elif self.check_line(move, diag_fw, mark) is DEFENSIVE:
+                    defensive_moves.add(move)
 
-            if self.check_line(move, diag_rv, mark) is WINNER:
-                return move
-            elif self.check_line(move, diag_rv, mark) is DEFENSIVE:
-                defensive_moves.add(move)
+                if self.check_line(move, diag_rv, mark) is WINNER:
+                    return move
+                elif self.check_line(move, diag_rv, mark) is DEFENSIVE:
+                    defensive_moves.add(move)
 
         # No winning move found, play a defensive one
         if len(defensive_moves) >= 1:
@@ -153,7 +155,7 @@ class TicTacToeBot(Bot):
 
             We check this by confirming that there is only one free space, 
             and the other two spots are filled with identical marks.
-            
+
             We check for a win by seeing if the other two marks are the same as ours.
         """
         if line.count(None) is 1 and len(filter(None, set(line))) is 1 and mark in line:
