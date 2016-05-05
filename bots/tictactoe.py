@@ -5,6 +5,9 @@
 from bot import Bot
 import random
 
+WINNER = 'WINNER'
+DEFENSIVE = 'DEFENSIVE'
+
 class TicTacToeBot(Bot):
     """ Tic Tac Toe Bot class
     """
@@ -13,7 +16,7 @@ class TicTacToeBot(Bot):
         """
         Bot.__init__(self, 'TICTACTOE')
         self.game_id = None
-        self.mark = None
+        # self.mark = None
         # self.game_status = None
         self.board = Board()
 
@@ -23,7 +26,7 @@ class TicTacToeBot(Bot):
         # Set our mark and id for this turn
         # Note: This is kinda weird, because of multiple games. 
         # Think of it as mark and id the bot is focusing on for this particular turn.
-        self.mark = mark
+        # self.mark = mark
         self.game_id = gameid
         # if self.game_status is None or  self.game_status is 'COMPLETE':
         #     self.game_status = 'PLAYING'
@@ -32,7 +35,7 @@ class TicTacToeBot(Bot):
         self.board.update_board(gamestate)
 
         # Decide and make our move
-        move = self.next_move()
+        move = self.next_move(mark)
 
         # Show the board
         self.board.print_board(gameid, mark)
@@ -71,7 +74,7 @@ class TicTacToeBot(Bot):
         response = {'status': 'OK'}
         return response 
 
-    def next_move(self):
+    def next_move(self, mark):
         """ Function for determining the next move to be played
         """
         board = self.board.board_tiles
@@ -84,7 +87,7 @@ class TicTacToeBot(Bot):
             move = self.board.board_centre
         else:
             # First check for any potential win states
-            move = self.check_for_win(board, board_len, empty_tiles)
+            move = self.check_for_win(board, board_len, empty_tiles, mark)
 
             if move is None:
                 # Second move
@@ -102,63 +105,42 @@ class TicTacToeBot(Bot):
 
 
         # Fill the tile
-        self.board.assign_move(move, self.mark)
+        self.board.assign_move(move, mark)
 
         return move
 
-    def check_for_win(self, board, board_len, empty_tiles):
+    def check_for_win(self, board, board_len, empty_tiles, mark):
         """ Function for checking for any win (or loss) states
         """
         defensive_moves = set()
 
         # Verticals
         for move in empty_tiles:
-            col = []
-            row = []
-            # Build rows and columns
-            for i in range(board_len):
-                col.append(board[i][move%board_len])
-                row.append(board[move/board_len][i])
-
             # Horizontal checks
-            if row.count(None) is 1 and len(filter(None, set(row))) is 1 and self.mark in row:
+            row = self.board.get_row(move)
+            if self.check_line(move, row, mark) is WINNER:
                 return move
-            elif row.count(None) is 1 and len(filter(None, set(row))) is 1:
+            elif self.check_line(move, row, mark) is DEFENSIVE:
                 defensive_moves.add(move)
 
             # Vertical checks
-            if col.count(None) is 1 and len(filter(None, set(col))) is 1 and self.mark in col:
+            col = self.board.get_col(move)
+            if self.check_line(move, col, mark) is WINNER:
                 return move
-            elif col.count(None) is 1 and len(filter(None, set(col))) is 1:
+            elif self.check_line(move, col, mark) is DEFENSIVE:
                 defensive_moves.add(move)
 
-        diag_a = {}
-        diag_b = {}
-        for i in range(board_len):
-            # Build diagonals
-            diag_a[self.board.convert_tile(i,i)] = board[i][i]
-            diag_b[self.board.convert_tile(i, (board_len-1-i))] =  board[i][board_len-1-i]
+            # Diagonal checks
+            diag_fw, diag_rv = self.board.get_diags()
+            if self.check_line(move, diag_fw, mark) is WINNER:
+                return move
+            elif self.check_line(move, diag_fw, mark) is DEFENSIVE:
+                defensive_moves.add(move)
 
-        # Diagonal checks
-        # We're making the assumption that the winning number of tiles will always be the same as board_len.
-        # Still kinda ugly though.
-        if diag_a.values().count(None) is 1 and len(filter(None, set(diag_a.values()))) is 1 and self.mark in diag_a:
-            for move, val in diag_a.items():
-                if val is None:
-                    defensive_moves.add(move)
-        elif diag_a.values().count(None) is 1 and len(filter(None, set(diag_a.values()))) is 1:
-            for move, val in diag_a.items():
-                if val is None:
-                    defensive_moves.add(move)
-
-        if diag_b.values().count(None) is 1 and len(filter(None, set(diag_b.values()))) is 1 and self.mark in diag_b:
-            for move, val in diag_b.items():
-                if val is None:
-                    defensive_moves.add(move)
-        elif diag_b.values().count(None) is 1 and len(filter(None, set(diag_b.values()))) is 1:
-            for move, val in diag_b.items():
-                if val is None:
-                    defensive_moves.add(move)
+            if self.check_line(move, diag_rv, mark) is WINNER:
+                return move
+            elif self.check_line(move, diag_rv, mark) is DEFENSIVE:
+                defensive_moves.add(move)
 
         # No winning move found, play a defensive one
         if len(defensive_moves) >= 1:
@@ -166,11 +148,21 @@ class TicTacToeBot(Bot):
         else:
             return None
 
+    def check_line(self, move, line, mark):
+        """ Check if a given line (array) is a good move
 
-    def get_game_status(self):
-        """ Helper function to get the game state
+            We check this by confirming that there is only one free space, 
+            and the other two spots are filled with identical marks.
+            
+            We check for a win by seeing if the other two marks are the same as ours.
         """
-        return self.game_status
+        if line.count(None) is 1 and len(filter(None, set(line))) is 1 and mark in line:
+            return WINNER
+        elif line.count(None) is 1 and len(filter(None, set(line))) is 1:
+            return DEFENSIVE
+        else:
+            return None
+
 
 class Board:
     def __init__(self):
@@ -241,6 +233,34 @@ class Board:
                 if tile is None:
                     empties.append(self.convert_tile(i, j))
         return empties
+
+    def get_row(self, move):
+        """ Return the row the given move resides in
+        """
+        row = []
+        for i in range(self.board_len):
+            row.append(self.board_tiles[move/self.board_len][i])
+        return row
+
+    def get_col(self, move):
+        """ Return the column the given move resides in
+        """
+        col = []
+        for i in range(self.board_len):
+            col.append(self.board_tiles[i][move%self.board_len])
+        return col
+
+    def get_diags(self):
+        """ Return the two diagonals
+        """
+        diag_fw = []
+        diag_rv = []
+        for i in range(self.board_len):
+            # Build diagonals
+            diag_fw.append(self.board_tiles[i][i])
+            diag_rv.append(self.board_tiles[i][self.board_len-1-i])
+
+        return diag_fw, diag_rv
 
     def print_board(self, gameid, mark):
         """ Helper function for printing out the current board state
